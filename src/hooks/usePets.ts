@@ -20,9 +20,9 @@ export function usePets() {
     return { data, error }
   }
 
-  const feed = async (pet: PetWithStudent) => {
-    const newHunger = Math.min(100, pet.hunger + 15)
-    const newHappiness = Math.min(100, pet.happiness + 5)
+  const feed = async (pet: PetWithStudent, extraHunger = 15, extraHappiness = 5) => {
+    const newHunger = Math.min(100, pet.hunger + extraHunger)
+    const newHappiness = Math.min(100, pet.happiness + extraHappiness)
     const newFeedCount = pet.feed_count + 1
     const newStage = computeNewStage(pet.stage, newFeedCount)
     const { error } = await feedPet(pet.id, newHunger, newHappiness, newFeedCount, newStage)

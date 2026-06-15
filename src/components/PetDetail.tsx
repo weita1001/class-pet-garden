@@ -6,6 +6,7 @@ import { getEffectiveStats } from '../utils/petLogic'
 interface Props {
   pet: PetWithStudent
   onFeed: (itemId?: string) => Promise<{ error: any; evolved: boolean }>
+  onPlay: (itemId?: string) => Promise<void>
   onAddPoints: (amount: number) => void
   onLottery: () => void
   onBag: () => void
@@ -15,15 +16,18 @@ interface Props {
   onClose: () => void
 }
 
-export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onEvolve, inventory, onClose }: Props) {
+export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onEvolve, onPlay, inventory, onClose }: Props) {
   const [feeding, setFeeding] = useState(false)
+  const [playing, setPlaying] = useState(false)
   const [evolvedMsg, setEvolvedMsg] = useState('')
   const [showPoints, setShowPoints] = useState(false)
   const [customPoints, setCustomPoints] = useState('')
   const [showEvolve, setShowEvolve] = useState(false)
   const [showFeedChoice, setShowFeedChoice] = useState(false)
+  const [showPlayChoice, setShowPlayChoice] = useState(false)
 
   const foodItems = inventory.filter(i => i.item?.category === 'food' && i.quantity > 0)
+  const toyItems = inventory.filter(i => i.item?.category === 'toy' && i.quantity > 0)
   const [stats, setStats] = useState({ hunger: pet.hunger, happiness: pet.happiness })
 
   useEffect(() => {
@@ -43,20 +47,20 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
     catch { return null }
   })()
 
-  const handleFeed = async () => {
-    setFeeding(true)
-    const { error, evolved } = await onFeed()
-    setFeeding(false)
-    setShowFeedChoice(false)
-    if (!error && evolved) { setEvolvedMsg('🎉 进化了！'); setTimeout(() => setEvolvedMsg(''), 3000) }
-  }
-
   const handleFeedItem = async (itemId: string) => {
     setFeeding(true)
     const { error, evolved } = await onFeed(itemId)
     setFeeding(false)
     setShowFeedChoice(false)
     if (!error && evolved) { setEvolvedMsg('🎉 进化了！'); setTimeout(() => setEvolvedMsg(''), 3000) }
+  }
+
+  const handlePlayItem = async (itemId: string) => {
+    setPlaying(true)
+    await onPlay(itemId)
+    setPlaying(false)
+    setShowPlayChoice(false)
+    setEvolvedMsg('🎮 玩得开心！'); setTimeout(() => setEvolvedMsg(''), 2000)
   }
 
   const QUICK_POINTS_BUTTONS = [
@@ -107,12 +111,17 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           <button onClick={() => {
-            if (foodItems.length > 0) { setShowFeedChoice(!showFeedChoice) }
-            else { handleFeed() }
-          }} disabled={feeding} style={{
-            flex: 1, padding: '10px 16px', background: feeding ? '#ccc' : '#4caf50', color: '#fff',
-            border: 'none', borderRadius: 10, fontSize: 14, cursor: feeding ? 'default' : 'pointer',
-          }}>{feeding ? '🍞 喂食中...' : foodItems.length > 0 ? `🍞 喂食 (${foodItems.length}种)` : '🍞 基础喂食'}</button>
+            if (foodItems.length > 0) setShowFeedChoice(!showFeedChoice)
+          }} disabled={feeding || foodItems.length === 0} style={{
+            flex: 1, padding: '10px 16px', background: feeding ? '#ccc' : foodItems.length > 0 ? '#4caf50' : '#ccc', color: '#fff',
+            border: 'none', borderRadius: 10, fontSize: 14, cursor: foodItems.length > 0 && !feeding ? 'pointer' : 'default',
+          }}>{feeding ? '喂食中...' : foodItems.length > 0 ? `🍞 喂食 (${foodItems.length})` : '🍞 无食物'}</button>
+          <button onClick={() => {
+            if (toyItems.length > 0) setShowPlayChoice(!showPlayChoice)
+          }} disabled={playing || toyItems.length === 0} style={{
+            flex: 1, padding: '10px 16px', background: playing ? '#ccc' : toyItems.length > 0 ? '#2196f3' : '#ccc', color: '#fff',
+            border: 'none', borderRadius: 10, fontSize: 14, cursor: toyItems.length > 0 && !playing ? 'pointer' : 'default',
+          }}>{playing ? '玩耍中...' : toyItems.length > 0 ? `🎮 玩耍 (${toyItems.length})` : '🎮 无玩具'}</button>
           <button onClick={() => setShowPoints(!showPoints)} style={{
             padding: '10px 16px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, cursor: 'pointer',
           }}>💰 加分</button>
@@ -132,12 +141,25 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
 
         {showFeedChoice && foodItems.length > 0 && (
           <div style={{ background: '#e8f5e9', borderRadius: 10, padding: 12, marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择食物喂食：</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择食物：</div>
             {foodItems.map(fi => (
-              <button key={fi.id} onClick={() => { handleFeedItem(fi.item_id) }}
+              <button key={fi.id} onClick={() => handleFeedItem(fi.item_id)}
                 style={{ display: 'block', width: '100%', padding: '8px 12px', marginBottom: 4, borderRadius: 8,
                   border: '1px solid #c8e6c9', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>
-                {fi.item?.icon || '🍎'} {fi.item?.name || '食物'} ×{fi.quantity}
+                {fi.item?.icon || '🍎'} {fi.item?.name || '食物'} ×{fi.quantity} — 仅加饱食度
+              </button>
+            ))}
+          </div>
+        )}
+
+        {showPlayChoice && toyItems.length > 0 && (
+          <div style={{ background: '#e3f2fd', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择玩具：</div>
+            {toyItems.map(fi => (
+              <button key={fi.id} onClick={() => handlePlayItem(fi.item_id)}
+                style={{ display: 'block', width: '100%', padding: '8px 12px', marginBottom: 4, borderRadius: 8,
+                  border: '1px solid #bbdefb', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>
+                {fi.item?.icon || '🎮'} {fi.item?.name || '玩具'} ×{fi.quantity} — 仅加快乐值
               </button>
             ))}
           </div>

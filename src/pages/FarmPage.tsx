@@ -52,12 +52,17 @@ export default function FarmPage() {
     }
   }, [activeClassId, loadStudents, loadPets])
 
-  const handleFeed = async () => {
+  const handleFeed = async (itemId?: string) => {
     if (!selectedPet) return { error: new Error('no pet'), evolved: false }
-    return feed(selectedPet).then(r => {
-      if (activeClassId) loadPets(activeClassId)
-      return r
-    })
+    const r = itemId ? await feed(selectedPet, 20, 0) : await feed(selectedPet, 15, 0)
+    if (activeClassId) loadPets(activeClassId)
+    return r
+  }
+
+  const handlePlay = async (itemId?: string) => {
+    if (!selectedPet) return
+    await feed(selectedPet, 0, 20)
+    if (activeClassId) loadPets(activeClassId)
   }
 
   const handleAdopt = async (type: string, design: string) => {
@@ -200,7 +205,7 @@ export default function FarmPage() {
       </div>
 
       {selectedPet && (
-        <PetDetail pet={selectedPet} onFeed={handleFeed} onAddPoints={handleAddPoints}
+        <PetDetail pet={selectedPet} onFeed={handleFeed} onPlay={handlePlay} onAddPoints={handleAddPoints}
           inventory={petInventory}
           onLottery={() => setLotteryStudentId(selectedPet.student_id)}
           onBag={() => setBagStudentId(selectedPet.student_id)}
