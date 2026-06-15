@@ -8,14 +8,24 @@ export function computeNewStage(currentStage: PetStage, feedCount: number): PetS
   return currentStage
 }
 
-export function computeEmotion(hunger: number, happiness: number, lastFedAt: string | null): Emotion {
-  if (happiness >= 90 && hunger >= 70) return 'happy'
+// 衰减：每天 -2 饱食度，-1 快乐值
+export function getEffectiveStats(pet: { hunger: number; happiness: number; last_fed_at: string | null }, isWeekend = false) {
+  if (!pet.last_fed_at) return { hunger: pet.hunger, happiness: pet.happiness }
+  const daysSinceFed = (Date.now() - new Date(pet.last_fed_at).getTime()) / 86400000
+  const decayHunger = Math.max(0, pet.hunger - Math.round(daysSinceFed * 2))
+  const decayHappiness = Math.max(0, pet.happiness - Math.round(daysSinceFed * 1))
+  // 周末衰减减半
+  if (isWeekend) {
+    return { hunger: Math.min(pet.hunger, decayHunger + Math.round(daysSinceFed)), happiness: Math.min(pet.happiness, decayHappiness + Math.round(daysSinceFed * 0.5)) }
+  }
+  return { hunger: decayHunger, happiness: decayHappiness }
+}
+
+export function computeEmotion(hunger: number, happiness: number): Emotion {
   if (hunger <= 20) return 'hungry'
+  if (hunger <= 40) return 'sleepy'
+  if (happiness >= 90 && hunger >= 70) return 'happy'
   if (hunger >= 95) return 'stuffed'
-  if (!lastFedAt) return 'normal'
-  const hoursSinceFed = (Date.now() - new Date(lastFedAt).getTime()) / 3600000
-  if (hoursSinceFed > 72) return 'sick'
-  if (hoursSinceFed > 24) return 'hungry'
   if (happiness <= 30) return 'sleepy'
   return 'normal'
 }
