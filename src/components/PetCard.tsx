@@ -23,6 +23,13 @@ export default function PetCard({ pet, onClick }: Props) {
 
   const emotion = computeEmotion(stats.hunger, stats.happiness)
   const isEgg = pet.stage === 'egg'
+  const designUrl = (() => {
+    if (!pet.design) return null
+    try {
+      const d = typeof pet.design === 'string' ? JSON.parse(pet.design) : pet.design
+      return d.image_path || null
+    } catch { return null }
+  })()
 
   return (
     <div onClick={onClick} style={{
@@ -31,8 +38,8 @@ export default function PetCard({ pet, onClick }: Props) {
       transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)' }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)' }}>
-      {pet.design ? (
-        <img src={pet.design} alt={pet.type} style={{ width: 64, height: 64, imageRendering: 'pixelated', borderRadius: 8 }} />
+      {designUrl ? (
+        <img src={designUrl} alt={pet.type} style={{ width: 64, height: 64, imageRendering: 'pixelated', borderRadius: 8 }} />
       ) : (
         <div style={{ fontSize: 36, lineHeight: 1.2 }}>{PET_EMOJI[pet.type]?.[pet.stage as PetStage] || '🐾'}</div>
       )}
