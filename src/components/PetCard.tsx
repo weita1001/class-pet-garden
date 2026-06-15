@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react'
 import type { PetWithStudent, PetStage } from '../types'
-import { PET_EMOJI, EMOTION_EMOJI, STAGE_LABEL } from '../utils/constants'
-import { computeEmotion } from '../utils/petLogic'
+import { PET_EMOJI, STAGE_LABEL } from '../utils/constants'
+import { computeEmotion, getEffectiveStats } from '../utils/petLogic'
 
 interface Props {
   pet: PetWithStudent
@@ -8,8 +9,19 @@ interface Props {
 }
 
 export default function PetCard({ pet, onClick }: Props) {
-  const emotion = computeEmotion(pet.hunger, pet.happiness, pet.last_fed_at)
-  const emoji = PET_EMOJI[pet.type]?.[pet.stage as PetStage] || '🐾'
+  const [stats, setStats] = useState({ hunger: pet.hunger, happiness: pet.happiness })
+
+  useEffect(() => {
+    const update = () => {
+      const s = getEffectiveStats({ hunger: pet.hunger, happiness: pet.happiness, last_fed_at: pet.last_fed_at })
+      setStats(s)
+    }
+    update()
+    const interval = setInterval(update, 30000)
+    return () => clearInterval(interval)
+  }, [pet.hunger, pet.happiness, pet.last_fed_at])
+
+  const emotion = computeEmotion(stats.hunger, stats.happiness)
   const isEgg = pet.stage === 'egg'
 
   return (
@@ -19,8 +31,19 @@ export default function PetCard({ pet, onClick }: Props) {
       transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)' }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)' }}>
-      <div style={{ fontSize: 36, lineHeight: 1.2 }}>{emoji}</div>
-      <div style={{ fontSize: 20 }}>{EMOTION_EMOJI[emotion] || '😐'}</div>
+      {pet.design ? (
+        <img src={pet.design} alt={pet.type} style={{ width: 64, height: 64, imageRendering: 'pixelated', borderRadius: 8 }} />
+      ) : (
+        <div style={{ fontSize: 36, lineHeight: 1.2 }}>{PET_EMOJI[pet.type]?.[pet.stage as PetStage] || '🐾'}</div>
+      )}
+      <div style={{ marginTop: 4 }}>
+        <div style={{ height: 4, background: '#eee', borderRadius: 2, marginBottom: 2 }}>
+          <div style={{ height: 4, width: `${stats.hunger}%`, background: stats.hunger < 30 ? '#f44336' : '#4caf50', borderRadius: 2, transition: 'width 0.5s' }} />
+        </div>
+        <div style={{ height: 4, background: '#eee', borderRadius: 2 }}>
+          <div style={{ height: 4, width: `${stats.happiness}%`, background: '#ff9800', borderRadius: 2, transition: 'width 0.5s' }} />
+        </div>
+      </div>
       <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2 }}>{pet.student_name}</div>
       <div style={{ fontSize: 10, color: '#999' }}>{STAGE_LABEL[pet.stage]}</div>
     </div>

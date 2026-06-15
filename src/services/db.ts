@@ -99,6 +99,7 @@ export async function getPetsByClass(classId: string): Promise<{ data: PetWithSt
     id: row.id, student_id: row.student_id, type: row.type, personality: row.personality,
     stage: row.stage, hunger: row.hunger, happiness: row.happiness, feed_count: row.feed_count,
     last_fed_at: row.last_fed_at, created_at: row.created_at,
+    design: row.design || null, sick: row.sick || false,
     student_name: row.students.name, student_points: row.students.points,
   }))
   return { data: pets, error: null }

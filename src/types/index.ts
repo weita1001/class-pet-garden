@@ -33,6 +33,8 @@ export interface Pet {
   feed_count: number
   last_fed_at: string | null
   created_at: string
+  design?: string | null
+  sick?: boolean
 }
 
 export type ItemCategory = 'food' | 'decoration' | 'special'
