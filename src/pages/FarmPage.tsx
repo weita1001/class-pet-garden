@@ -4,6 +4,7 @@ import { useStudents } from '../hooks/useStudents'
 import { usePets } from '../hooks/usePets'
 import { useLottery } from '../hooks/useItems'
 import { updateStudentPoints, updatePetType } from '../services/db'
+import { randomTemplate } from '../utils/templates'
 import ClassSwitcher from '../components/ClassSwitcher'
 import StudentList from '../components/StudentList'
 import PetCard from '../components/PetCard'
@@ -65,12 +66,14 @@ export default function FarmPage() {
     loadPets(activeClassId)
   }
 
-  const handleEvolve = async (petId: string, oldType: string, newType: string) => {
+  const handleEvolve = async (petId: string, oldType: string, oldDesign: string | null | undefined, newType: string) => {
     if (!activeClassId) return
-    await updatePetType(petId, newType as PetType)
-    // 添加撤销操作
+    // 为新种类随机选一个造型
+    const tpl = randomTemplate(newType)
+    const newDesign = JSON.stringify({ image_path: tpl.path })
+    await updatePetType(petId, newType as PetType, newDesign)
     setUndoStack(prev => [...prev.slice(-4), async () => {
-      await updatePetType(petId, oldType as PetType)
+      await updatePetType(petId, oldType as PetType, oldDesign || undefined)
       loadPets(activeClassId)
     }])
     loadPets(activeClassId)
@@ -196,7 +199,7 @@ export default function FarmPage() {
           onLottery={() => setLotteryStudentId(selectedPet.student_id)}
           onBag={() => setBagStudentId(selectedPet.student_id)}
           onShop={() => setShowShop(true)}
-          onEvolve={(newType) => handleEvolve(selectedPet.id, selectedPet.type, newType)}
+          onEvolve={(newType) => handleEvolve(selectedPet.id, selectedPet.type, selectedPet.design, newType)}
           onClose={() => setSelectedPet(null)} />
       )}
 

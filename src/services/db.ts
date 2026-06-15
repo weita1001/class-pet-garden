@@ -90,7 +90,9 @@ export async function createPet(studentId: string, type: PetType, personality: P
 }
 
 export async function updatePetType(petId: string, type: PetType, design?: string | null) {
-  const { error } = await supabase.from('pets').update({ type, design }).eq('id', petId)
+  const updateData: any = { type }
+  if (design) updateData.design = design
+  const { error } = await supabase.from('pets').update(updateData).eq('id', petId)
   return { error }
 }
 

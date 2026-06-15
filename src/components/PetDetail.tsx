@@ -116,9 +116,9 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
 
         {showEvolve && (
           <div style={{ background: '#f3e5f5', borderRadius: 10, padding: 12, marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择进化目标（教师决定）：</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择进化目标：</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-              {['cat','dog','rabbit','hamster','chick','pig','dragon','unicorn','fairy','slime'].map(t => (
+              {['dragon','unicorn','fairy','slime'].map(t => (
                 <button key={t} onClick={() => { onEvolve(t); setShowEvolve(false) }}
                   disabled={t === pet.type}
                   style={{ padding: '6px 4px', borderRadius: 8, border: t === pet.type ? '2px solid #4caf50' : '1px solid #ddd',
