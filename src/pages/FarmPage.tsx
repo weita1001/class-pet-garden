@@ -3,7 +3,7 @@ import { useClasses } from '../hooks/useClasses'
 import { useStudents } from '../hooks/useStudents'
 import { usePets } from '../hooks/usePets'
 import { useLottery } from '../hooks/useItems'
-import { updateStudentPoints, updatePetType, getInventory, addItem } from '../services/db'
+import { updateStudentPoints, updatePetType, getInventory, addItem, useItem } from '../services/db'
 import { randomTemplate } from '../utils/templates'
 import ClassSwitcher from '../components/ClassSwitcher'
 import StudentList from '../components/StudentList'
@@ -54,15 +54,29 @@ export default function FarmPage() {
 
   const handleFeed = async (itemId?: string) => {
     if (!selectedPet) return { error: new Error('no pet'), evolved: false }
+    // 消耗食物道具
+    if (itemId) {
+      const inv = petInventory.find(i => i.item_id === itemId)
+      if (inv) await useItem(inv.id, inv.quantity - 1)
+    }
     const r = itemId ? await feed(selectedPet, 20, 0) : await feed(selectedPet, 15, 0)
     if (activeClassId) loadPets(activeClassId)
+    // 刷新库存
+    const { data: inv } = await getInventory(selectedPet.student_id)
+    setPetInventory(inv || [])
     return r
   }
 
   const handlePlay = async (itemId?: string) => {
     if (!selectedPet) return
+    if (itemId) {
+      const inv = petInventory.find(i => i.item_id === itemId)
+      if (inv) await useItem(inv.id, inv.quantity - 1)
+    }
     await feed(selectedPet, 0, 20)
     if (activeClassId) loadPets(activeClassId)
+    const { data: inv } = await getInventory(selectedPet.student_id)
+    setPetInventory(inv || [])
   }
 
   const handleAdopt = async (type: string, design: string) => {
@@ -99,6 +113,10 @@ export default function FarmPage() {
       loadStudents(activeClassId)
       loadPets(activeClassId)
     }
+    // 实时刷新详情页的积分
+    const { data: inv } = await getInventory(selectedPet.student_id)
+    setPetInventory(inv || [])
+    setSelectedPet(prev => prev ? { ...prev, student_points: (prev.student_points || 0) + amount } : null)
   }
 
   const refreshAll = () => {
