@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4caf50" />
+    <link rel="manifest" href="/class-pet-garden/manifest.json" />
+    <title>班级宠物园</title>
+    <script type="module" crossorigin src="/class-pet-garden/assets/index-CquHqwQI.js"></script>
+    <link rel="stylesheet" crossorigin href="/class-pet-garden/assets/index-7CNWZ8YB.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          if (regs.length > 0) { regs.forEach(r => r.update()) }
+          else { navigator.serviceWorker.register('/sw.js') }
+        })
+      }
+    </script>
+  </body>
+</html>
