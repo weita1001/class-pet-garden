@@ -27,7 +27,7 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
   const [showPlayChoice, setShowPlayChoice] = useState(false)
 
   const foodItems = inventory.filter(i => i.item?.category === 'food' && i.quantity > 0)
-  const toyItems = inventory.filter(i => i.item?.category === 'toy' && i.quantity > 0)
+  const toyItems = inventory.filter(i => i.item?.category === 'decoration' && i.quantity > 0)
   const [stats, setStats] = useState({ hunger: pet.hunger, happiness: pet.happiness })
 
   useEffect(() => {

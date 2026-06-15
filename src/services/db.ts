@@ -174,15 +174,9 @@ export async function getAllItems() {
 }
 
 const DEFAULT_ITEMS = [
-  { id:'food_apple', name:'苹果', category:'food', rarity:'common', icon:'🍎', effect:{hunger:10} },
-  { id:'food_cake', name:'蛋糕', category:'food', rarity:'common', icon:'🍰', effect:{hunger:25} },
-  { id:'food_fish', name:'小鱼干', category:'food', rarity:'common', icon:'🐟', effect:{hunger:15} },
-  { id:'toy_ball', name:'皮球', category:'toy', rarity:'common', icon:'⚽', effect:{happiness:15} },
-  { id:'toy_yarn', name:'毛线球', category:'toy', rarity:'common', icon:'🧶', effect:{happiness:20} },
-  { id:'toy_bone', name:'骨头玩具', category:'toy', rarity:'common', icon:'🦴', effect:{happiness:10} },
-  { id:'med_bandage', name:'创可贴', category:'special', rarity:'common', icon:'🩹', effect:{heal:true} },
-  { id:'med_potion', name:'恢复药水', category:'special', rarity:'rare', icon:'🧪', effect:{hunger:20,happiness:20} },
-  { id:'med_syringe', name:'治疗针', category:'special', rarity:'legendary', icon:'💉', effect:{hunger:50,happiness:50} },
+  { id:'toy_ball', name:'皮球', category:'decoration', rarity:'common', icon:'⚽', effect:{happiness:15} },
+  { id:'toy_yarn', name:'毛线球', category:'decoration', rarity:'common', icon:'🧶', effect:{happiness:20} },
+  { id:'toy_bone', name:'骨头玩具', category:'decoration', rarity:'common', icon:'🦴', effect:{happiness:10} },
 ]
 export async function seedItems() {
   const { data } = await supabase.from('items').select('id').limit(1)

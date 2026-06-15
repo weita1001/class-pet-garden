@@ -5,15 +5,15 @@ interface ShopItem {
 }
 
 const SHOP_ITEMS: ShopItem[] = [
-  { id: 'food_apple', name: '苹果', icon: '🍎', cost: 3, description: '饱食度+10', category: '食物' },
+  { id: 'food_bread', name: '面包', icon: '🍞', cost: 3, description: '饱食度+10', category: '食物' },
   { id: 'food_cake', name: '蛋糕', icon: '🍰', cost: 8, description: '饱食度+25', category: '食物' },
-  { id: 'food_fish', name: '小鱼干', icon: '🐟', cost: 5, description: '饱食度+15', category: '食物' },
+  { id: 'food_dessert', name: '甜点', icon: '🧁', cost: 5, description: '饱食+15 快乐+5', category: '食物' },
+  { id: 'food_feast', name: '超级大餐', icon: '🍖', cost: 15, description: '饱食度+50', category: '食物' },
   { id: 'toy_ball', name: '皮球', icon: '⚽', cost: 5, description: '快乐值+15', category: '玩具' },
   { id: 'toy_yarn', name: '毛线球', icon: '🧶', cost: 6, description: '快乐值+20', category: '玩具' },
   { id: 'toy_bone', name: '骨头玩具', icon: '🦴', cost: 4, description: '快乐值+10', category: '玩具' },
-  { id: 'med_bandage', name: '创可贴', icon: '🩹', cost: 5, description: '治愈轻伤', category: '药品' },
-  { id: 'med_potion', name: '恢复药水', icon: '🧪', cost: 12, description: '饱食+快乐各+20', category: '药品' },
-  { id: 'med_syringe', name: '治疗针', icon: '💉', cost: 20, description: '完全治愈+进化加速', category: '药品' },
+  { id: 'special_heal', name: '治疗药', icon: '💚', cost: 10, description: '治愈生病', category: '药品' },
+  { id: 'special_evolve', name: '进化药水', icon: '💊', cost: 30, description: '加速进化', category: '药品' },
 ]
 
 interface Props {
@@ -56,7 +56,7 @@ export default function ShopModal({ studentPoints, studentId, onBuy, onClose }: 
           <span style={{ fontSize: 14, color: '#4caf50', fontWeight: 600 }}>💰 {studentPoints} 积分</span>
         </div>
 
-        {msg && <div style={{ textAlign: 'center', padding: 8, marginBottom: 8, background: msg.includes('失败') || msg.includes('不足') ? '#fce4ec' : '#e8f5e9', borderRadius: 8, color: msg.includes('失败') || msg.includes('不足') ? '#c62828' : '#2e7d32', fontSize: 13 }}>{msg}</div>}
+        {msg && <div style={{ textAlign: 'center', padding: 8, marginBottom: 8, background: msg.includes('成功') ? '#e8f5e9' : '#fce4ec', borderRadius: 8, color: msg.includes('成功') ? '#2e7d32' : '#c62828', fontSize: 13 }}>{msg}</div>}
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
           <button onClick={() => setFilter(null)} style={{ padding: '4px 12px', borderRadius: 14, border: 'none', fontSize: 12, cursor: 'pointer', background: filter === null ? '#4caf50' : '#eee', color: filter === null ? '#fff' : '#666' }}>全部</button>
