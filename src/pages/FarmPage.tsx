@@ -3,7 +3,7 @@ import { useClasses } from '../hooks/useClasses'
 import { useStudents } from '../hooks/useStudents'
 import { usePets } from '../hooks/usePets'
 import { useLottery } from '../hooks/useItems'
-import { updateStudentPoints, updatePetType, getInventory } from '../services/db'
+import { updateStudentPoints, updatePetType, getInventory, addItem } from '../services/db'
 import { randomTemplate } from '../utils/templates'
 import ClassSwitcher from '../components/ClassSwitcher'
 import StudentList from '../components/StudentList'
@@ -237,14 +237,22 @@ export default function FarmPage() {
           onUseItem={(item) => { if (item.category === 'food') handleFeed(); refreshAll() }} />
       )}
 
-      {showShop && selectedPet && (
+      {showShop && selectedPet && (() => {
+        const stu = students.find(s => s.id === selectedPet.student_id)
+        return (
         <ShopModal
           studentId={selectedPet.student_id}
-          studentPoints={students.find(s => s.id === selectedPet.student_id)?.points || 0}
-          onBuy={async (item) => { refreshAll(); return {} }}
+          studentPoints={stu?.points || 0}
+          onBuy={async (item) => {
+            if (!stu || stu.points < item.cost) return { error: '积分不足' }
+            await updateStudentPoints(selectedPet.student_id, -item.cost, `购买${item.name}`)
+            const { error } = await addItem(selectedPet.student_id, item.id)
+            refreshAll()
+            return error ? { error: error.message || '购买失败' } : {}
+          }}
           onClose={() => setShowShop(false)}
         />
-      )}
+      )})()}
 
       {showLucky && (
         <LuckyMoment pets={pets} onEvent={handleLuckyEvent} onClose={() => setShowLucky(false)} />
