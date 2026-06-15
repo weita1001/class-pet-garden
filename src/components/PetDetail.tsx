@@ -5,21 +5,25 @@ import { getEffectiveStats } from '../utils/petLogic'
 
 interface Props {
   pet: PetWithStudent
-  onFeed: () => Promise<{ error: any; evolved: boolean }>
+  onFeed: (itemId?: string) => Promise<{ error: any; evolved: boolean }>
   onAddPoints: (amount: number) => void
   onLottery: () => void
   onBag: () => void
   onShop: () => void
   onEvolve: (newType: string) => void
+  inventory: Array<{ id: string; item_id: string; quantity: number; item?: { name: string; category: string; icon: string } }>
   onClose: () => void
 }
 
-export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onEvolve, onClose }: Props) {
+export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onEvolve, inventory, onClose }: Props) {
   const [feeding, setFeeding] = useState(false)
   const [evolvedMsg, setEvolvedMsg] = useState('')
   const [showPoints, setShowPoints] = useState(false)
   const [customPoints, setCustomPoints] = useState('')
   const [showEvolve, setShowEvolve] = useState(false)
+  const [showFeedChoice, setShowFeedChoice] = useState(false)
+
+  const foodItems = inventory.filter(i => i.item?.category === 'food' && i.quantity > 0)
   const [stats, setStats] = useState({ hunger: pet.hunger, happiness: pet.happiness })
 
   useEffect(() => {
@@ -43,6 +47,15 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
     setFeeding(true)
     const { error, evolved } = await onFeed()
     setFeeding(false)
+    setShowFeedChoice(false)
+    if (!error && evolved) { setEvolvedMsg('🎉 进化了！'); setTimeout(() => setEvolvedMsg(''), 3000) }
+  }
+
+  const handleFeedItem = async (itemId: string) => {
+    setFeeding(true)
+    const { error, evolved } = await onFeed(itemId)
+    setFeeding(false)
+    setShowFeedChoice(false)
     if (!error && evolved) { setEvolvedMsg('🎉 进化了！'); setTimeout(() => setEvolvedMsg(''), 3000) }
   }
 
@@ -93,10 +106,13 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          <button onClick={handleFeed} disabled={feeding} style={{
+          <button onClick={() => {
+            if (foodItems.length > 0) { setShowFeedChoice(!showFeedChoice) }
+            else { handleFeed() }
+          }} disabled={feeding} style={{
             flex: 1, padding: '10px 16px', background: feeding ? '#ccc' : '#4caf50', color: '#fff',
             border: 'none', borderRadius: 10, fontSize: 14, cursor: feeding ? 'default' : 'pointer',
-          }}>{feeding ? '🍞 喂食中...' : '🍞 喂食'}</button>
+          }}>{feeding ? '🍞 喂食中...' : foodItems.length > 0 ? `🍞 喂食 (${foodItems.length}种)` : '🍞 基础喂食'}</button>
           <button onClick={() => setShowPoints(!showPoints)} style={{
             padding: '10px 16px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, cursor: 'pointer',
           }}>💰 加分</button>
@@ -114,9 +130,22 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
           }}>⭐ 进化</button>
         </div>
 
+        {showFeedChoice && foodItems.length > 0 && (
+          <div style={{ background: '#e8f5e9', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择食物喂食：</div>
+            {foodItems.map(fi => (
+              <button key={fi.id} onClick={() => { handleFeedItem(fi.item_id) }}
+                style={{ display: 'block', width: '100%', padding: '8px 12px', marginBottom: 4, borderRadius: 8,
+                  border: '1px solid #c8e6c9', background: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>
+                {fi.item?.icon || '🍎'} {fi.item?.name || '食物'} ×{fi.quantity}
+              </button>
+            ))}
+          </div>
+        )}
+
         {showEvolve && (
           <div style={{ background: '#f3e5f5', borderRadius: 10, padding: 12, marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择进化目标：</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>进化目标：</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
               {[{key:'dragon',label:'🐉 龙'},{key:'unicorn',label:'🦄 独角兽'},{key:'fairy',label:'🧚 精灵'},{key:'slime',label:'🟢 史莱姆'}].map(t => (
                 <button key={t.key} onClick={() => { onEvolve(t.key); setShowEvolve(false) }}

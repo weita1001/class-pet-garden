@@ -3,7 +3,7 @@ import { useClasses } from '../hooks/useClasses'
 import { useStudents } from '../hooks/useStudents'
 import { usePets } from '../hooks/usePets'
 import { useLottery } from '../hooks/useItems'
-import { updateStudentPoints, updatePetType } from '../services/db'
+import { updateStudentPoints, updatePetType, getInventory } from '../services/db'
 import { randomTemplate } from '../utils/templates'
 import ClassSwitcher from '../components/ClassSwitcher'
 import StudentList from '../components/StudentList'
@@ -37,6 +37,7 @@ export default function FarmPage() {
   const [showCollection, setShowCollection] = useState(false)
   const [showShop, setShowShop] = useState(false)
   const [undoStack, setUndoStack] = useState<Array<() => Promise<void>>>([])
+  const [petInventory, setPetInventory] = useState<any[]>([])
 
   useEffect(() => {
     if (!classesLoading && classes.length > 0 && !activeClassId) {
@@ -185,7 +186,11 @@ export default function FarmPage() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12 }}>
             {pets.map(pet => (
-              <PetCard key={pet.id} pet={pet} onClick={() => setSelectedPet(pet)} />
+              <PetCard key={pet.id} pet={pet} onClick={async () => {
+                setSelectedPet(pet);
+                const { data } = await getInventory(pet.student_id);
+                setPetInventory(data || []);
+              }} />
             ))}
             {pets.length === 0 && studentsWithoutPets.length === 0 && (
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 40, color: '#999' }}>请先添加学生，然后领养宠物</div>
@@ -196,6 +201,7 @@ export default function FarmPage() {
 
       {selectedPet && (
         <PetDetail pet={selectedPet} onFeed={handleFeed} onAddPoints={handleAddPoints}
+          inventory={petInventory}
           onLottery={() => setLotteryStudentId(selectedPet.student_id)}
           onBag={() => setBagStudentId(selectedPet.student_id)}
           onShop={() => setShowShop(true)}
