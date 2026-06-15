@@ -171,6 +171,7 @@ export default function FarmPage() {
         <PetDetail pet={selectedPet} onFeed={handleFeed} onAddPoints={handleAddPoints}
           onLottery={() => setLotteryStudentId(selectedPet.student_id)}
           onBag={() => setBagStudentId(selectedPet.student_id)}
+          onShop={() => setShowShop(true)}
           onClose={() => setSelectedPet(null)} />
       )}
 
@@ -196,8 +197,9 @@ export default function FarmPage() {
 
       {showShop && selectedPet && (
         <ShopModal
+          studentId={selectedPet.student_id}
           studentPoints={students.find(s => s.id === selectedPet.student_id)?.points || 0}
-          onBuy={async (itemId) => { refreshAll() }}
+          onBuy={async (item) => { refreshAll(); return {} }}
           onClose={() => setShowShop(false)}
         />
       )}

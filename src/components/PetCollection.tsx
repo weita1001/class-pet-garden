@@ -1,5 +1,5 @@
-import { PET_EMOJI } from '../utils/constants'
 import type { PetWithStudent } from '../types'
+import { PET_EMOJI } from '../utils/constants'
 
 function getDesignUrl(pet: PetWithStudent) {
   if (!pet.design) return null
@@ -9,48 +9,35 @@ function getDesignUrl(pet: PetWithStudent) {
 
 interface Props {
   pets: PetWithStudent[]
-  onSelect?: (pet: Pet) => void
+  onSelect?: (pet: PetWithStudent) => void
 }
 
 export default function PetCollection({ pets, onSelect }: Props) {
-  const typeOrder = ['cat', 'dog', 'rabbit', 'hamster', 'chick', 'pig', 'dragon', 'unicorn', 'fairy', 'slime']
-  const grouped: Record<string, Pet[]> = {}
-  pets.forEach(p => {
-    if (!grouped[p.type]) grouped[p.type] = []
-    grouped[p.type].push(p)
-  })
-
   return (
     <div style={{ padding: 16 }}>
-      <h3 style={{ margin: '0 0 12px', fontSize: 18 }}>📖 宠物图鉴</h3>
-      {typeOrder.map(type => {
-        const list = grouped[type]
-        if (!list || list.length === 0) return null
-        return (
-          <div key={type} style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
-              {PET_EMOJI[type]?.adult || '🐾'} {type} × {list.length}
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {list.map(pet => {
-                const url = getDesignUrl(pet)
-                return (
-                <div key={pet.id} onClick={() => onSelect?.(pet)}
-                  style={{ width: 60, textAlign: 'center', cursor: 'pointer', padding: 6, borderRadius: 8,
-                    border: '1px solid #e0e0e0', background: '#fff', fontSize: 12 }}>
-                  {url ? (
-                    <img src={url} alt={pet.type} style={{ width: 40, height: 40, imageRendering: 'pixelated', borderRadius: 6 }} />
-                  ) : (
-                    <div style={{ fontSize: 24 }}>{PET_EMOJI[pet.type]?.[pet.stage] || '🐣'}</div>
-                  )}
-                  <div style={{ color: '#666', marginTop: 2 }}>{pet.student_name}</div>
-                </div>
-              )})}
-            </div>
-          </div>
-        )
-      })}
-      {pets.length === 0 && <div style={{ color: '#999', textAlign: 'center', padding: 40 }}>还没有宠物，快去领养吧！</div>}
+      <h3 style={{ margin: '0 0 12px', fontSize: 18 }}>📖 宠物图鉴 ({pets.length}只)</h3>
+      {pets.length === 0 ? (
+        <div style={{ color: '#999', textAlign: 'center', padding: 40 }}>还没有宠物，快去领养吧！</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 10 }}>
+          {pets.map(pet => {
+            const url = getDesignUrl(pet)
+            return (
+              <div key={pet.id} onClick={() => onSelect?.(pet)}
+                style={{ textAlign: 'center', cursor: 'pointer', padding: 10, borderRadius: 10,
+                  border: '1px solid #e0e0e0', background: '#fff', fontSize: 12 }}>
+                {url ? (
+                  <img src={url} alt={pet.type} style={{ width: 56, height: 56, imageRendering: 'pixelated', borderRadius: 8 }} />
+                ) : (
+                  <div style={{ fontSize: 40 }}>{PET_EMOJI[pet.type]?.[pet.stage] || '🐣'}</div>
+                )}
+                <div style={{ fontWeight: 600, marginTop: 4 }}>{pet.student_name}</div>
+                <div style={{ color: '#999', fontSize: 10 }}>{pet.type}</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

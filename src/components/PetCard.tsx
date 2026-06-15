@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { PetWithStudent, PetStage } from '../types'
-import { PET_EMOJI, STAGE_LABEL } from '../utils/constants'
+import { PET_EMOJI } from '../utils/constants'
 import { computeEmotion, getEffectiveStats } from '../utils/petLogic'
 
 interface Props {
@@ -21,7 +21,6 @@ export default function PetCard({ pet, onClick }: Props) {
     return () => clearInterval(interval)
   }, [pet.hunger, pet.happiness, pet.last_fed_at])
 
-  const emotion = computeEmotion(stats.hunger, stats.happiness)
   const isEgg = pet.stage === 'egg'
   const designUrl = (() => {
     if (!pet.design) return null
@@ -52,7 +51,7 @@ export default function PetCard({ pet, onClick }: Props) {
         </div>
       </div>
       <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2 }}>{pet.student_name}</div>
-      <div style={{ fontSize: 10, color: '#999' }}>{STAGE_LABEL[pet.stage]}</div>
+      <div style={{ fontSize: 10, color: '#999' }}>⭐{pet.student_points}</div>
     </div>
   )
 }

@@ -8,10 +8,11 @@ interface Props {
   onAddPoints: (amount: number) => void
   onLottery: () => void
   onBag: () => void
+  onShop: () => void
   onClose: () => void
 }
 
-export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onClose }: Props) {
+export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onClose }: Props) {
   const [feeding, setFeeding] = useState(false)
   const [evolvedMsg, setEvolvedMsg] = useState('')
   const [showPoints, setShowPoints] = useState(false)
@@ -85,6 +86,9 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
           <button onClick={onBag} style={{
             padding: '10px 16px', background: '#9c27b0', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, cursor: 'pointer',
           }}>🎒 背包</button>
+          <button onClick={onShop} style={{
+            padding: '10px 16px', background: '#ff9800', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, cursor: 'pointer',
+          }}>🏪 商城</button>
         </div>
 
         {showPoints && (
