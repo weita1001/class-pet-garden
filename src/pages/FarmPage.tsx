@@ -3,7 +3,7 @@ import { useClasses } from '../hooks/useClasses'
 import { useStudents } from '../hooks/useStudents'
 import { usePets } from '../hooks/usePets'
 import { useLottery } from '../hooks/useItems'
-import { updateStudentPoints, updatePetType, getInventory, addItem, useItem } from '../services/db'
+import { updateStudentPoints, updatePetType, getInventory, getPetsByClass, addItem, useItem } from '../services/db'
 import { randomTemplate } from '../utils/templates'
 import ClassSwitcher from '../components/ClassSwitcher'
 import StudentList from '../components/StudentList'
@@ -52,18 +52,24 @@ export default function FarmPage() {
     }
   }, [activeClassId, loadStudents, loadPets])
 
+  const refreshDetail = async (studentId: string) => {
+    if (!activeClassId) return
+    const { data: pets } = await getPetsByClass(activeClassId)
+    const updated = pets?.find(p => p.student_id === studentId)
+    if (updated) setSelectedPet(updated)
+    const { data: inv } = await getInventory(studentId)
+    setPetInventory(inv || [])
+  }
+
   const handleFeed = async (itemId?: string) => {
     if (!selectedPet) return { error: new Error('no pet'), evolved: false }
-    // 消耗食物道具
     if (itemId) {
       const inv = petInventory.find(i => i.item_id === itemId)
-      if (inv) await useItem(inv.id, inv.quantity - 1)
+      if (inv) await useItem(inv.id, Math.max(0, inv.quantity - 1))
     }
-    const r = itemId ? await feed(selectedPet, 20, 0) : await feed(selectedPet, 15, 0)
+    const r = await feed(selectedPet, itemId ? 20 : 15, 0)
     if (activeClassId) loadPets(activeClassId)
-    // 刷新库存
-    const { data: inv } = await getInventory(selectedPet.student_id)
-    setPetInventory(inv || [])
+    await refreshDetail(selectedPet.student_id)
     return r
   }
 
@@ -71,12 +77,11 @@ export default function FarmPage() {
     if (!selectedPet) return
     if (itemId) {
       const inv = petInventory.find(i => i.item_id === itemId)
-      if (inv) await useItem(inv.id, inv.quantity - 1)
+      if (inv) await useItem(inv.id, Math.max(0, inv.quantity - 1))
     }
     await feed(selectedPet, 0, 20)
     if (activeClassId) loadPets(activeClassId)
-    const { data: inv } = await getInventory(selectedPet.student_id)
-    setPetInventory(inv || [])
+    await refreshDetail(selectedPet.student_id)
   }
 
   const handleAdopt = async (type: string, design: string) => {
@@ -109,14 +114,8 @@ export default function FarmPage() {
   const handleAddPoints = async (amount: number) => {
     if (!selectedPet) return
     await updateStudentPoints(selectedPet.student_id, amount, '课堂奖励')
-    if (activeClassId) {
-      loadStudents(activeClassId)
-      loadPets(activeClassId)
-    }
-    // 实时刷新详情页的积分
-    const { data: inv } = await getInventory(selectedPet.student_id)
-    setPetInventory(inv || [])
-    setSelectedPet(prev => prev ? { ...prev, student_points: (prev.student_points || 0) + amount } : null)
+    if (activeClassId) { loadStudents(activeClassId); loadPets(activeClassId) }
+    await refreshDetail(selectedPet.student_id)
   }
 
   const refreshAll = () => {
@@ -265,8 +264,10 @@ export default function FarmPage() {
             if (!stu || stu.points < item.cost) return { error: '积分不足' }
             await updateStudentPoints(selectedPet.student_id, -item.cost, `购买${item.name}`)
             const { error } = await addItem(selectedPet.student_id, item.id)
+            if (error) return { error: error.message || '购买失败' }
             refreshAll()
-            return error ? { error: error.message || '购买失败' } : {}
+            await refreshDetail(selectedPet.student_id)
+            return {}
           }}
           onClose={() => setShowShop(false)}
         />
