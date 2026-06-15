@@ -80,12 +80,18 @@ export async function getPointsLog(studentId: string) {
 }
 
 // ============ Pets ============
-export async function createPet(studentId: string, type: PetType, personality: Personality) {
+export async function createPet(studentId: string, type: PetType, personality: Personality, design?: string | null) {
   const { data, error } = await supabase.from('pets').insert({
     student_id: studentId, type, personality, stage: 'egg',
     hunger: 100, happiness: 100, feed_count: 0, last_fed_at: new Date().toISOString(),
+    design: design || null,
   }).select().single()
   return { data: data as Pet | null, error }
+}
+
+export async function updatePetType(petId: string, type: PetType, design?: string | null) {
+  const { error } = await supabase.from('pets').update({ type, design }).eq('id', petId)
+  return { error }
 }
 
 export async function getPetsByClass(classId: string): Promise<{ data: PetWithStudent[] | null, error: any }> {

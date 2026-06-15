@@ -14,8 +14,8 @@ export function usePets() {
     setLoading(false)
   }, [])
 
-  const adopt = async (studentId: string, type: PetType, personality: Personality) => {
-    const { data, error } = await createPet(studentId, type, personality)
+  const adopt = async (studentId: string, type: PetType, personality: Personality, design?: string | null) => {
+    const { data, error } = await createPet(studentId, type, personality, design)
     return { data, error }
   }
 
