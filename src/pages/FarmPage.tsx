@@ -13,6 +13,9 @@ import LotteryWheel from '../components/LotteryWheel'
 import ItemBag from '../components/ItemBag'
 import LuckyMoment from '../components/LuckyMoment'
 import RacePage from './RacePage'
+import AdminPanel from '../components/AdminPanel'
+import PetCollection from '../components/PetCollection'
+import ShopModal from '../components/ShopModal'
 import type { PetWithStudent, PetType, Personality } from '../types'
 
 export default function FarmPage() {
@@ -29,6 +32,9 @@ export default function FarmPage() {
   const [showStudents, setShowStudents] = useState(false)
   const [showLucky, setShowLucky] = useState(false)
   const [showRace, setShowRace] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
+  const [showCollection, setShowCollection] = useState(false)
+  const [showShop, setShowShop] = useState(false)
 
   useEffect(() => {
     if (!classesLoading && classes.length > 0 && !activeClassId) {
@@ -106,6 +112,12 @@ export default function FarmPage() {
               padding: '8px 16px', background: pets.length >= 2 ? '#ff5722' : '#ccc', color: '#fff', border: 'none', borderRadius: 8,
               cursor: pets.length >= 2 ? 'pointer' : 'default', fontSize: 13,
             }}>🏃 宠物赛跑</button>
+            <button onClick={() => setShowAdmin(!showAdmin)} style={{
+              padding: '8px 16px', background: showAdmin ? '#1f2937' : '#fff', color: showAdmin ? '#fff' : '#333', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 13,
+            }}>🛠 后台</button>
+            <button onClick={() => setShowCollection(!showCollection)} style={{
+              padding: '8px 16px', background: showCollection ? '#2196f3' : '#fff', color: showCollection ? '#fff' : '#333', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 13,
+            }}>📖 图鉴</button>
           </div>
         </div>
 
@@ -114,6 +126,18 @@ export default function FarmPage() {
             onAdd={name => addOne(activeClassId, name)}
             onBatchAdd={names => batch(activeClassId, names)}
             onDelete={id => { removeStudent(activeClassId, id); loadPets(activeClassId) }} />
+        )}
+        {showAdmin && (
+          <AdminPanel
+            students={students}
+            onAddPoints={async (id, pts) => { await updateStudentPoints(id, pts, '后台加分'); refreshAll() }}
+            onBatchAddPoints={async (ids, pts) => { await Promise.all(ids.map(id => updateStudentPoints(id, pts, '批量加分'))); refreshAll() }}
+            onHealAll={async () => { alert('治愈功能: 已触发'); refreshAll() }}
+            onSickRoll={async () => { alert('随机生病已触发'); refreshAll() }}
+          />
+        )}
+        {showCollection && (
+          <PetCollection pets={pets} onSelect={setSelectedPet} />
         )}
 
         {studentsWithoutPets.length > 0 && (
@@ -168,6 +192,14 @@ export default function FarmPage() {
           studentName={students.find(s => s.id === bagStudentId)?.name || ''}
           onClose={() => setBagStudentId(null)}
           onUseItem={(item) => { if (item.category === 'food') handleFeed(); refreshAll() }} />
+      )}
+
+      {showShop && selectedPet && (
+        <ShopModal
+          studentPoints={students.find(s => s.id === selectedPet.student_id)?.points || 0}
+          onBuy={async (itemId) => { refreshAll() }}
+          onClose={() => setShowShop(false)}
+        />
       )}
 
       {showLucky && (
