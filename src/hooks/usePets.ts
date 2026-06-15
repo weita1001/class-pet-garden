@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { getPetsByClass, createPet, feedPet } from '../services/db'
 import type { PetWithStudent, PetType, Personality } from '../types'
-import { computeNewStage } from '../utils/petLogic'
+import { computeNewStage, getEffectiveStats } from '../utils/petLogic'
 
 export function usePets() {
   const [pets, setPets] = useState<PetWithStudent[]>([])
@@ -21,8 +21,10 @@ export function usePets() {
   }
 
   const feed = async (pet: PetWithStudent, extraHunger = 0, extraHappiness = 0) => {
-    const newHunger = Math.min(100, pet.hunger + extraHunger)
-    const newHappiness = Math.min(100, pet.happiness + extraHappiness)
+    // 使用衰减后的真实值作为基础，避免"回弹"
+    const base = getEffectiveStats({ hunger: pet.hunger, happiness: pet.happiness, last_fed_at: pet.last_fed_at })
+    const newHunger = Math.min(100, base.hunger + extraHunger)
+    const newHappiness = Math.min(100, base.happiness + extraHappiness)
     const newFeedCount = pet.feed_count + 1
     const newStage = computeNewStage(pet.stage, newFeedCount)
     const { error } = await feedPet(pet.id, newHunger, newHappiness, newFeedCount, newStage)
