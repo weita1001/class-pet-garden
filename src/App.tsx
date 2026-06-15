@@ -1,9 +1,16 @@
+import { useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
 import LoginPage from './pages/LoginPage'
 import FarmPage from './pages/FarmPage'
+import { seedItems } from './services/db'
 
 function App() {
   const { session, loading, login, logout } = useAuth()
+
+  // 首次登录自动创建商城商品
+  useEffect(() => {
+    if (session) { seedItems() }
+  }, [session])
 
   if (loading) {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'system-ui' }}>加载中...</div>
