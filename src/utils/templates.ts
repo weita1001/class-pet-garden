@@ -97,7 +97,16 @@ export function randomTemplate(type: string): PetTemplate {
 }
 
 export function randomTemplateAvoidDup(type: string, usedPaths: string[]): PetTemplate {
-  const pool = templates.filter(t => t.type === type && !usedPaths.includes(t.path))
-  if (pool.length > 0) return pool[Math.floor(Math.random() * pool.length)]
-  return randomTemplate(type)
+  let pool: PetTemplate[]
+  if (type === 'any') {
+    // 所有普通种类，概率相等，避免重复造型
+    const commonTypes = ['cat', 'dog', 'rabbit', 'hamster', 'chick', 'pig']
+    const allCommon = templates.filter(t => commonTypes.includes(t.type))
+    const available = allCommon.filter(t => !usedPaths.includes(t.path))
+    pool = available.length > 0 ? available : allCommon
+  } else {
+    pool = templates.filter(t => t.type === type && !usedPaths.includes(t.path))
+    if (pool.length === 0) pool = templates.filter(t => t.type === type)
+  }
+  return pool[Math.floor(Math.random() * pool.length)]
 }

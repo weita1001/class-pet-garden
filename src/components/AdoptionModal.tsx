@@ -1,87 +1,101 @@
 import { useState } from 'react'
-import type { PetType, Personality } from '../types'
-import { PET_TYPE_POOL, PERSONALITY_EMOJI, PERSONALITY_LABEL, EGG_RARITY_LABEL, EGG_COLORS } from '../utils/constants'
+import { getAllTemplates, randomTemplateAvoidDup } from '../utils/templates'
 
-const PERSONALITIES: Personality[] = ['active', 'lazy', 'foodie', 'shy']
+const COMMON_TYPES = ['cat', 'dog', 'rabbit', 'hamster', 'chick', 'pig']
 
 interface Props {
-  studentName: string
-  onAdopt: (type: PetType, personality: Personality) => void
+  usedPaths: string[]
+  onAdopt: (type: string, design: string) => void
   onClose: () => void
 }
 
-export default function AdoptionModal({ studentName, onAdopt, onClose }: Props) {
-  const [selectedEgg, setSelectedEgg] = useState<number | null>(null)
-  const [hatching, setHatching] = useState(false)
-  const [result, setResult] = useState<{ type: PetType; personality: Personality } | null>(null)
+export default function AdoptionModal({ usedPaths, onAdopt, onClose }: Props) {
+  const [mode, setMode] = useState<'choose' | 'hatching' | 'result'>('choose')
+  const [selected, setSelected] = useState<{ type: string; path: string } | null>(null)
 
-  const EGG_OPTIONS = [1, 2, 3]
+  const allTemplates = getAllTemplates()
+  const commonTemplates = allTemplates.filter(t => COMMON_TYPES.includes(t.type))
 
-  const handleHatch = () => {
-    if (selectedEgg === null) return
-    setHatching(true)
-    const rarity = selectedEgg + 1
-    const pool = PET_TYPE_POOL.filter(p => p.rarity <= rarity)
-    const petType = pool[Math.floor(Math.random() * pool.length)].type
-    const personality = PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)]
-    setTimeout(() => setResult({ type: petType, personality }), 1500)
+  const handleRandomHatch = () => {
+    setMode('hatching')
+    setTimeout(() => {
+      const tpl = randomTemplateAvoidDup('any', usedPaths)
+      if (tpl) {
+        setSelected(tpl)
+        setMode('result')
+      } else {
+        // 所有造型都用过了，随机选一个
+        const fallback = commonTemplates[Math.floor(Math.random() * commonTemplates.length)]
+        setSelected(fallback)
+        setMode('result')
+      }
+    }, 1500)
   }
 
   const handleConfirm = () => {
-    if (result) onAdopt(result.type, result.personality)
+    if (!selected) return
+    onAdopt(selected.type, selected.path)
+    onClose()
+  }
+
+  if (mode === 'hatching') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 40, textAlign: 'center' }}>
+          <div style={{ fontSize: 60 }}>🥚</div>
+          <style>{`@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }`}</style>
+          <div style={{ fontSize: 18, fontWeight: 600, marginTop: 16 }}>孵化中...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'result' && selected) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 32, textAlign: 'center', maxWidth: 360 }}>
+          <div style={{ fontSize: 48 }}>🎉</div>
+          <img src={selected.path} alt="" style={{ width: 80, height: 80, imageRendering: 'pixelated', borderRadius: 12, margin: '12px 0' }} />
+          <div style={{ fontSize: 14, color: '#666' }}>种类: <strong>{selected.type}</strong></div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'center' }}>
+            <button onClick={() => { setMode('choose'); setSelected(null) }} style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: 14 }}>重来</button>
+            <button onClick={handleConfirm} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#4caf50', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>确认领养</button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 420, textAlign: 'center' }}>
-        {!hatching && (
-          <>
-            <h2 style={{ margin: '0 0 4px' }}>🥚 领养宠物</h2>
-            <p style={{ color: '#666', fontSize: 14 }}>为 <strong>{studentName}</strong> 选择一个蛋</p>
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', margin: '24px 0' }}>
-              {EGG_OPTIONS.map((rarity) => (
-                <div key={rarity} onClick={() => setSelectedEgg(rarity - 1)} style={{
-                  padding: 16, borderRadius: 12, cursor: 'pointer', textAlign: 'center',
-                  border: selectedEgg === rarity - 1 ? `3px solid ${EGG_COLORS[rarity]}` : '2px solid #e0e0e0',
-                  background: selectedEgg === rarity - 1 ? '#fafafa' : '#fff',
-                  transform: selectedEgg === rarity - 1 ? 'scale(1.05)' : 'none', transition: 'all 0.2s',
-                }}>
-                  <div style={{ fontSize: 40, filter: `hue-rotate(${(rarity - 1) * 30}deg)` }}>🥚</div>
-                  <div style={{ fontSize: 12, marginTop: 4 }}>{EGG_RARITY_LABEL[rarity]}</div>
-                </div>
-              ))}
-            </div>
-            <button onClick={handleHatch} disabled={selectedEgg === null} style={{
-              padding: '10px 32px', fontSize: 16, borderRadius: 12,
-              background: selectedEgg !== null ? '#ff9800' : '#ccc', color: '#fff',
-              border: 'none', cursor: selectedEgg !== null ? 'pointer' : 'default',
-            }}>✨ 孵化！</button>
-            <button onClick={onClose} style={{ marginLeft: 12, padding: '10px 24px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#999' }}>取消</button>
-          </>
-        )}
-        {hatching && !result && (
-          <div>
-            <h2>孵化中...</h2>
-            <div style={{ fontSize: 64, animation: 'bounce 0.5s infinite alternate' }}>🥚</div>
-            <style>{`@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }`}</style>
-            <p style={{ color: '#999' }}>蛋在晃动...</p>
-          </div>
-        )}
-        {result && (
-          <div>
-            <h2>🎉 孵化成功！</h2>
-            <div style={{ fontSize: 64 }}>🐣</div>
-            <p style={{ fontSize: 18, fontWeight: 600 }}>
-              {studentName} 获得了<br />
-              一只 <strong>{PERSONALITY_EMOJI[result.personality]} {PERSONALITY_LABEL[result.personality]}</strong> 型宠物！
-            </p>
-            <button onClick={handleConfirm} style={{
-              padding: '10px 32px', fontSize: 16, borderRadius: 12, background: '#4caf50', color: '#fff',
-              border: 'none', cursor: 'pointer', marginRight: 12,
-            }}>确认领养</button>
-            <button onClick={onClose} style={{ padding: '10px 24px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#999' }}>关闭</button>
-          </div>
-        )}
+      <div style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 500, width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>🐣 领养宠物</h3>
+        <p style={{ fontSize: 13, color: '#999', marginBottom: 16 }}>
+          随机孵化（普通种类）：猫 · 狗 · 兔子 · 仓鼠 · 小鸡 · 小猪<br/>
+          <span style={{ color: '#ce93d8' }}>龙 · 独角兽 · 精灵 · 史莱姆 只能通过进化获得</span>
+        </p>
+
+        <button onClick={handleRandomHatch} style={{
+          width: '100%', padding: 16, background: 'linear-gradient(135deg, #ff9800, #f44336)', color: '#fff',
+          border: 'none', borderRadius: 12, fontSize: 18, fontWeight: 600, cursor: 'pointer', marginBottom: 16,
+        }}>🥚 随机孵化</button>
+
+        <div style={{ fontSize: 13, color: '#999', marginBottom: 8 }}>可孵化种类（{commonTemplates.length}种造型）：</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+          {COMMON_TYPES.map(type => {
+            const tpls = commonTemplates.filter(t => t.type === type)
+            const unused = tpls.filter(t => !usedPaths.includes(t.path))
+            return (
+              <div key={type} style={{ padding: 8, borderRadius: 8, background: unused.length > 0 ? '#e8f5e9' : '#f5f5f5', textAlign: 'center', fontSize: 12 }}>
+                {tpls[0] && <img src={tpls[0].path} alt="" style={{ width: 32, height: 32, imageRendering: 'pixelated' }} />}
+                <div>{type}</div>
+                <div style={{ fontSize: 10, color: unused.length > 0 ? '#4caf50' : '#999' }}>剩{unused.length}种</div>
+              </div>
+            )
+          })}
+        </div>
+
+        <button onClick={onClose} style={{ marginTop: 16, width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: 14 }}>关闭</button>
       </div>
     </div>
   )

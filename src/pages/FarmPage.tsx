@@ -57,9 +57,9 @@ export default function FarmPage() {
     })
   }
 
-  const handleAdopt = async (type: PetType, personality: Personality) => {
+  const handleAdopt = async (type: string, design: string) => {
     if (!adoptingFor || !activeClassId) return
-    await adopt(adoptingFor, type, personality)
+    await adopt(adoptingFor, type as PetType, 'active', design)
     setAdoptingFor(null)
     loadPets(activeClassId)
   }
@@ -137,7 +137,7 @@ export default function FarmPage() {
           />
         )}
         {showCollection && (
-          <PetCollection pets={pets} onSelect={setSelectedPet} />
+          <PetCollection />
         )}
 
         {studentsWithoutPets.length > 0 && (
@@ -176,7 +176,10 @@ export default function FarmPage() {
       )}
 
       {adoptingFor && (
-        <AdoptionModal studentName={students.find(s => s.id === adoptingFor)?.name || ''}
+        <AdoptionModal
+          usedPaths={pets.map(p => {
+            try { return JSON.parse(p.design || '{}').image_path || '' } catch { return '' }
+          }).filter(Boolean)}
           onAdopt={handleAdopt} onClose={() => setAdoptingFor(null)} />
       )}
 
