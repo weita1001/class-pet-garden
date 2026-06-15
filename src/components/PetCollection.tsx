@@ -1,8 +1,14 @@
 import { PET_EMOJI } from '../utils/constants'
-import type { Pet } from '../types'
+import type { PetWithStudent } from '../types'
+
+function getDesignUrl(pet: PetWithStudent) {
+  if (!pet.design) return null
+  try { const d = typeof pet.design === 'string' ? JSON.parse(pet.design) : pet.design; return d.image_path || null }
+  catch { return null }
+}
 
 interface Props {
-  pets: Pet[]
+  pets: PetWithStudent[]
   onSelect?: (pet: Pet) => void
 }
 
@@ -26,14 +32,20 @@ export default function PetCollection({ pets, onSelect }: Props) {
               {PET_EMOJI[type]?.adult || '🐾'} {type} × {list.length}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {list.map(pet => (
+              {list.map(pet => {
+                const url = getDesignUrl(pet)
+                return (
                 <div key={pet.id} onClick={() => onSelect?.(pet)}
                   style={{ width: 60, textAlign: 'center', cursor: 'pointer', padding: 6, borderRadius: 8,
                     border: '1px solid #e0e0e0', background: '#fff', fontSize: 12 }}>
-                  <div style={{ fontSize: 24 }}>{PET_EMOJI[pet.type]?.[pet.stage] || '🐣'}</div>
+                  {url ? (
+                    <img src={url} alt={pet.type} style={{ width: 40, height: 40, imageRendering: 'pixelated', borderRadius: 6 }} />
+                  ) : (
+                    <div style={{ fontSize: 24 }}>{PET_EMOJI[pet.type]?.[pet.stage] || '🐣'}</div>
+                  )}
                   <div style={{ color: '#666', marginTop: 2 }}>{pet.student_name}</div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         )

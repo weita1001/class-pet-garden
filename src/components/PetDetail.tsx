@@ -18,6 +18,11 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
   const [customPoints, setCustomPoints] = useState('')
 
   const emoji = PET_EMOJI[pet.type]?.[pet.stage] || '🐾'
+  const designUrl = (() => {
+    if (!pet.design) return null
+    try { const d = typeof pet.design === 'string' ? JSON.parse(pet.design) : pet.design; return d.image_path || null }
+    catch { return null }
+  })()
 
   const handleFeed = async () => {
     setFeeding(true)
@@ -36,7 +41,11 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 400, maxHeight: '90vh', overflow: 'auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 72 }}>{emoji}</div>
+          {designUrl ? (
+            <img src={designUrl} alt={pet.type} style={{ width: 100, height: 100, imageRendering: 'pixelated', borderRadius: 12 }} />
+          ) : (
+            <div style={{ fontSize: 72 }}>{emoji}</div>
+          )}
           {evolvedMsg && <div style={{ fontSize: 24, fontWeight: 'bold', color: '#ff9800', animation: 'pulse 0.5s' }}>{evolvedMsg}</div>}
           <h3 style={{ margin: '4px 0' }}>{pet.student_name} 的宠物</h3>
           <div style={{ fontSize: 13, color: '#666' }}>

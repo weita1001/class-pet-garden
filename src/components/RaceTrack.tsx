@@ -74,11 +74,18 @@ export default function RaceTrack({ racers: inputRacers, onFinish, onClose }: Pr
 
           {sortedRacers.map(racer => {
             const emoji = PET_EMOJI[racer.pet.type]?.[racer.pet.stage as PetStage] || '🐾'
+            const url = (() => {
+              if (!racer.pet.design) return null
+              try { const d = typeof racer.pet.design === 'string' ? JSON.parse(racer.pet.design) : racer.pet.design; return d.image_path || null }
+              catch { return null }
+            })()
             return (
               <div key={racer.pet.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8, position: 'relative', height: 40 }}>
                 <div style={{ width: 60, fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{racer.pet.student_name}</div>
                 <div style={{ flex: 1, position: 'relative', height: 30, background: '#f5f5f5', borderRadius: 15 }}>
-                  <div style={{ position: 'absolute', left: `${racer.position}%`, top: -5, fontSize: 28, transition: started ? 'none' : 'left 0.3s', zIndex: 1 }}>{emoji}</div>
+                  <div style={{ position: 'absolute', left: `${racer.position}%`, top: -5, fontSize: 28, transition: started ? 'none' : 'left 0.3s', zIndex: 1 }}>
+                    {url ? <img src={url} alt="" style={{ width: 32, height: 32, imageRendering: 'pixelated' }} /> : emoji}
+                  </div>
                 </div>
                 {racer.rank && (
                   <div style={{ width: 40, fontSize: 20, textAlign: 'center', flexShrink: 0 }}>
