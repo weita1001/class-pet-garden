@@ -118,12 +118,12 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
           <div style={{ background: '#f3e5f5', borderRadius: 10, padding: 12, marginBottom: 12 }}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择进化目标：</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-              {['dragon','unicorn','fairy','slime'].map(t => (
-                <button key={t} onClick={() => { onEvolve(t); setShowEvolve(false) }}
-                  disabled={t === pet.type}
-                  style={{ padding: '6px 4px', borderRadius: 8, border: t === pet.type ? '2px solid #4caf50' : '1px solid #ddd',
-                    background: t === pet.type ? '#e8f5e9' : '#fff', cursor: t === pet.type ? 'default' : 'pointer', fontSize: 11 }}>
-                  {t === 'dragon' || t === 'unicorn' || t === 'fairy' || t === 'slime' ? '💎' : ''} {t}
+              {[{key:'dragon',label:'🐉 龙'},{key:'unicorn',label:'🦄 独角兽'},{key:'fairy',label:'🧚 精灵'},{key:'slime',label:'🟢 史莱姆'}].map(t => (
+                <button key={t.key} onClick={() => { onEvolve(t.key); setShowEvolve(false) }}
+                  disabled={t.key === pet.type}
+                  style={{ padding: '6px 4px', borderRadius: 8, border: t.key === pet.type ? '2px solid #4caf50' : '1px solid #ddd',
+                    background: t.key === pet.type ? '#e8f5e9' : '#fff', cursor: t.key === pet.type ? 'default' : 'pointer', fontSize: 11 }}>
+                  💎 {t.label}
                 </button>
               ))}
             </div>
