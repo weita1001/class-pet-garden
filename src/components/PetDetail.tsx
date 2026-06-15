@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { PetWithStudent } from '../types'
 import { PET_EMOJI, PERSONALITY_EMOJI, PERSONALITY_LABEL, STAGE_LABEL } from '../utils/constants'
+import { getEffectiveStats } from '../utils/petLogic'
 
 interface Props {
   pet: PetWithStudent
@@ -17,6 +18,17 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
   const [evolvedMsg, setEvolvedMsg] = useState('')
   const [showPoints, setShowPoints] = useState(false)
   const [customPoints, setCustomPoints] = useState('')
+  const [stats, setStats] = useState({ hunger: pet.hunger, happiness: pet.happiness })
+
+  useEffect(() => {
+    const update = () => {
+      const s = getEffectiveStats({ hunger: pet.hunger, happiness: pet.happiness, last_fed_at: pet.last_fed_at })
+      setStats(s)
+    }
+    update()
+    const interval = setInterval(update, 15000)
+    return () => clearInterval(interval)
+  }, [pet.hunger, pet.happiness, pet.last_fed_at])
 
   const emoji = PET_EMOJI[pet.type]?.[pet.stage] || '🐾'
   const designUrl = (() => {
@@ -56,15 +68,21 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
 
         <div style={{ marginBottom: 16 }}>
           <div style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: 13 }}>🍞 饱食度</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 13 }}>🍞 饱食度</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{stats.hunger}/100</span>
+            </div>
             <div style={{ background: '#eee', height: 10, borderRadius: 5, marginTop: 4 }}>
-              <div style={{ width: `${pet.hunger}%`, height: '100%', background: pet.hunger < 30 ? '#f44336' : '#4caf50', borderRadius: 5, transition: 'width 0.3s' }} />
+              <div style={{ width: `${stats.hunger}%`, height: '100%', background: stats.hunger < 30 ? '#f44336' : '#4caf50', borderRadius: 5, transition: 'width 0.3s' }} />
             </div>
           </div>
           <div style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: 13 }}>😊 快乐值</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 13 }}>😊 快乐值</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{stats.happiness}/100</span>
+            </div>
             <div style={{ background: '#eee', height: 10, borderRadius: 5, marginTop: 4 }}>
-              <div style={{ width: `${pet.happiness}%`, height: '100%', background: '#ff9800', borderRadius: 5, transition: 'width 0.3s' }} />
+              <div style={{ width: `${stats.happiness}%`, height: '100%', background: '#ff9800', borderRadius: 5, transition: 'width 0.3s' }} />
             </div>
           </div>
           <div style={{ fontSize: 13, color: '#666' }}>

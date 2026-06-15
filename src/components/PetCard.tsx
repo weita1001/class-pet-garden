@@ -43,11 +43,19 @@ export default function PetCard({ pet, onClick }: Props) {
         <div style={{ fontSize: 36, lineHeight: 1.2 }}>{PET_EMOJI[pet.type]?.[pet.stage as PetStage] || '🐾'}</div>
       )}
       <div style={{ marginTop: 4 }}>
-        <div style={{ height: 4, background: '#eee', borderRadius: 2, marginBottom: 2 }}>
-          <div style={{ height: 4, width: `${stats.hunger}%`, background: stats.hunger < 30 ? '#f44336' : '#4caf50', borderRadius: 2, transition: 'width 0.5s' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 1 }}>
+          <span style={{ fontSize: 9, color: '#666', width: 16 }}>🍞</span>
+          <div style={{ flex: 1, height: 4, background: '#eee', borderRadius: 2 }}>
+            <div style={{ height: 4, width: `${stats.hunger}%`, background: stats.hunger < 30 ? '#f44336' : '#4caf50', borderRadius: 2, transition: 'width 0.5s' }} />
+          </div>
+          <span style={{ fontSize: 9, color: '#666', width: 22, textAlign: 'right' }}>{stats.hunger}</span>
         </div>
-        <div style={{ height: 4, background: '#eee', borderRadius: 2 }}>
-          <div style={{ height: 4, width: `${stats.happiness}%`, background: '#ff9800', borderRadius: 2, transition: 'width 0.5s' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ fontSize: 9, color: '#666', width: 16 }}>😊</span>
+          <div style={{ flex: 1, height: 4, background: '#eee', borderRadius: 2 }}>
+            <div style={{ height: 4, width: `${stats.happiness}%`, background: '#ff9800', borderRadius: 2, transition: 'width 0.5s' }} />
+          </div>
+          <span style={{ fontSize: 9, color: '#666', width: 22, textAlign: 'right' }}>{stats.happiness}</span>
         </div>
       </div>
       <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2 }}>{pet.student_name}</div>
