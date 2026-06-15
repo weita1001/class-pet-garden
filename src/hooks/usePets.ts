@@ -15,7 +15,8 @@ export function usePets() {
   }, [])
 
   const adopt = async (studentId: string, type: PetType, personality: Personality, design?: string | null) => {
-    const { data, error } = await createPet(studentId, type, personality, design)
+    const designJson = design ? JSON.stringify({ image_path: design }) : null
+    const { data, error } = await createPet(studentId, type, personality, designJson)
     return { data, error }
   }
 

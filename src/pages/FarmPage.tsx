@@ -3,7 +3,7 @@ import { useClasses } from '../hooks/useClasses'
 import { useStudents } from '../hooks/useStudents'
 import { usePets } from '../hooks/usePets'
 import { useLottery } from '../hooks/useItems'
-import { updateStudentPoints } from '../services/db'
+import { updateStudentPoints, updatePetType } from '../services/db'
 import ClassSwitcher from '../components/ClassSwitcher'
 import StudentList from '../components/StudentList'
 import PetCard from '../components/PetCard'
@@ -35,6 +35,7 @@ export default function FarmPage() {
   const [showAdmin, setShowAdmin] = useState(false)
   const [showCollection, setShowCollection] = useState(false)
   const [showShop, setShowShop] = useState(false)
+  const [undoStack, setUndoStack] = useState<Array<() => Promise<void>>>([])
 
   useEffect(() => {
     if (!classesLoading && classes.length > 0 && !activeClassId) {
@@ -62,6 +63,24 @@ export default function FarmPage() {
     await adopt(adoptingFor, type as PetType, 'active', design)
     setAdoptingFor(null)
     loadPets(activeClassId)
+  }
+
+  const handleEvolve = async (petId: string, oldType: string, newType: string) => {
+    if (!activeClassId) return
+    await updatePetType(petId, newType as PetType)
+    // 添加撤销操作
+    setUndoStack(prev => [...prev.slice(-4), async () => {
+      await updatePetType(petId, oldType as PetType)
+      loadPets(activeClassId)
+    }])
+    loadPets(activeClassId)
+  }
+
+  const handleUndo = async () => {
+    const last = undoStack[undoStack.length - 1]
+    if (!last) return
+    await last()
+    setUndoStack(prev => prev.slice(0, -1))
   }
 
   const handleAddPoints = async (amount: number) => {
@@ -118,6 +137,11 @@ export default function FarmPage() {
             <button onClick={() => setShowCollection(!showCollection)} style={{
               padding: '8px 16px', background: showCollection ? '#2196f3' : '#fff', color: showCollection ? '#fff' : '#333', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 13,
             }}>📖 图鉴</button>
+            {undoStack.length > 0 && (
+              <button onClick={handleUndo} style={{
+                padding: '8px 16px', background: '#f44336', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13,
+              }}>↩ 撤销 ({undoStack.length})</button>
+            )}
           </div>
         </div>
 
@@ -172,6 +196,7 @@ export default function FarmPage() {
           onLottery={() => setLotteryStudentId(selectedPet.student_id)}
           onBag={() => setBagStudentId(selectedPet.student_id)}
           onShop={() => setShowShop(true)}
+          onEvolve={(newType) => handleEvolve(selectedPet.id, selectedPet.type, newType)}
           onClose={() => setSelectedPet(null)} />
       )}
 

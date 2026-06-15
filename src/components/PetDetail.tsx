@@ -10,14 +10,16 @@ interface Props {
   onLottery: () => void
   onBag: () => void
   onShop: () => void
+  onEvolve: (newType: string) => void
   onClose: () => void
 }
 
-export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onClose }: Props) {
+export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, onShop, onEvolve, onClose }: Props) {
   const [feeding, setFeeding] = useState(false)
   const [evolvedMsg, setEvolvedMsg] = useState('')
   const [showPoints, setShowPoints] = useState(false)
   const [customPoints, setCustomPoints] = useState('')
+  const [showEvolve, setShowEvolve] = useState(false)
   const [stats, setStats] = useState({ hunger: pet.hunger, happiness: pet.happiness })
 
   useEffect(() => {
@@ -107,7 +109,26 @@ export default function PetDetail({ pet, onFeed, onAddPoints, onLottery, onBag, 
           <button onClick={onShop} style={{
             padding: '10px 16px', background: '#ff9800', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, cursor: 'pointer',
           }}>🏪 商城</button>
+          <button onClick={() => setShowEvolve(!showEvolve)} style={{
+            padding: '10px 16px', background: '#ce93d8', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, cursor: 'pointer',
+          }}>⭐ 进化</button>
         </div>
+
+        {showEvolve && (
+          <div style={{ background: '#f3e5f5', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>选择进化目标（教师决定）：</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+              {['cat','dog','rabbit','hamster','chick','pig','dragon','unicorn','fairy','slime'].map(t => (
+                <button key={t} onClick={() => { onEvolve(t); setShowEvolve(false) }}
+                  disabled={t === pet.type}
+                  style={{ padding: '6px 4px', borderRadius: 8, border: t === pet.type ? '2px solid #4caf50' : '1px solid #ddd',
+                    background: t === pet.type ? '#e8f5e9' : '#fff', cursor: t === pet.type ? 'default' : 'pointer', fontSize: 11 }}>
+                  {t === 'dragon' || t === 'unicorn' || t === 'fairy' || t === 'slime' ? '💎' : ''} {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {showPoints && (
           <div style={{ background: '#f5f5f5', borderRadius: 10, padding: 12, marginBottom: 12 }}>
